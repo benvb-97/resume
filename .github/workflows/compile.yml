@@ -1,0 +1,39 @@
+name: build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual triggering of the workflow
+
+jobs:
+    build:
+        name: Build and commit the PDF
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v5
+
+        - name: Compile LaTeX document
+          uses: xu-cheng/latex-action@d6769d313e2a048b4a3289e5499e4dd50950293d
+          with:
+            root_file: resume.tex
+            compiler: xelatex
+        
+        - name: Move PDF to build directory
+          run: |
+            mkdir build
+            mv resume.pdf build/resume.pdf
+        
+        - name: Push build
+          uses: s0/git-publish-subdir-action@92faf786f11dfa44fc366ac3eb274d193ca1af7e
+          env:
+            REPO: self
+            BRANCH: build
+            FOLDER: build
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            MESSAGE: "Update compiled resume PDF"
